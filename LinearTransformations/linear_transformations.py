@@ -64,16 +64,16 @@ def rotate(A, theta):
 
 # Problem 2
 def solar_system(T, x_e, x_m, omega_e, omega_m):
-    """Plot the trajectories of the earth and moon over the time interval [0,T]
-    assuming the initial position of the earth is (x_e,0) and the initial
-    position of the moon is (x_m,0).
+    """Plot the trajectories of the Earth and Moon over the time interval [0,T]
+    assuming the initial position of the Earth is (x_e,0) and the initial
+    position of the Moon is (x_m,0).
 
     Parameters:
         T (float): The final time.
-        x_e (float): The earth's initial x coordinate.
-        x_m (float): The moon's initial x coordinate.
-        omega_e (float): The earth's angular velocity.
-        omega_m (float): The moon's angular velocity.
+        x_e (float): The Earth's initial x coordinate.
+        x_m (float): The Moon's initial x coordinate.
+        omega_e (float): The Earth's angular velocity.
+        omega_m (float): The Moon's angular velocity.
     """
     raise NotImplementedError("Problem 2 Incomplete")
 
