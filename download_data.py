@@ -9,7 +9,10 @@ from pathlib import Path
 # Injected at publish time when using public data repositories.
 # DATA_VERSION matches byu.yml docker_image_tag (a branch name on the data repo).
 DATA_REPO = 'https://github.com/BYU-ACME/vol1a-data.git'
-DATA_VERSION = 'may2026'
+DATA_VERSION = 'jun2026'
+
+# Publish-only stamp in public data repos (see repo_urls.DATA_VERSION_FILENAME).
+_DATA_VERSION_STAMP = "ACME_DATA_VERSION"
 
 
 def run(command, *, cwd=None):
@@ -36,9 +39,18 @@ def load_gitignore(gitignore_path: Path) -> tuple[list[str], set[str]]:
     return lines, {line.strip() for line in lines if line.strip()}
 
 
+def is_lab_data_path(path: str) -> bool:
+    """Ignore git metadata and publish-only files."""
+    if path == _DATA_VERSION_STAMP:
+        return False
+    return path != ".git" and not path.startswith(".git/")
+
+
 def update_gitignore(gitignore_path: Path, data_files: list[str]) -> None:
     lines, existing = load_gitignore(gitignore_path)
-    new_entries = [path for path in data_files if path not in existing]
+    new_entries = [
+        path for path in data_files if path not in existing and is_lab_data_path(path)
+    ]
     if not new_entries and gitignore_path.exists():
         return
     with gitignore_path.open("a" if gitignore_path.exists() else "w", newline="\n") as f:
@@ -51,7 +63,21 @@ def update_gitignore(gitignore_path: Path, data_files: list[str]) -> None:
 
 def list_files_from_git_ref(ref: str) -> list[str]:
     output = capture(["git", "ls-tree", "-r", "--name-only", ref])
-    return [line.strip() for line in output.splitlines() if line.strip()]
+    return [
+        line.strip()
+        for line in output.splitlines()
+        if line.strip() and is_lab_data_path(line.strip())
+    ]
+
+
+def list_tracked_files(repo_dir: Path) -> list[str]:
+    """List tracked files in a clone (excludes .git/ metadata)."""
+    output = capture(["git", "ls-files"], cwd=repo_dir)
+    return [
+        line.strip()
+        for line in output.splitlines()
+        if line.strip() and is_lab_data_path(line.strip())
+    ]
 
 
 def pull_from_private_data_branch() -> list[str]:
@@ -84,14 +110,12 @@ def pull_from_public_data_repo() -> list[str]:
             ]
         )
 
-        data_files = [
-            str(path.relative_to(checkout_dir))
-            for path in checkout_dir.rglob("*")
-            if path.is_file()
-        ]
+        data_files = list_tracked_files(checkout_dir)
 
         print(f"Refreshing {len(data_files)} data files (overwriting local copies)...")
         for rel_path in data_files:
+            if not is_lab_data_path(rel_path):
+                continue
             src = checkout_dir / rel_path
             dest = workspace / rel_path
             dest.parent.mkdir(parents=True, exist_ok=True)
