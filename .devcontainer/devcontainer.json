@@ -3,7 +3,6 @@
   "name": "Vol 1 First Container",
   "image": "ghcr.io/byu-acme/vol1-first-container:jun2026",
   "containerName": "vol1-first-container",
-  "workspaceFolder": "/workspaces",
 
   // Run once on container creation: register a deterministic kernel.
   "postCreateCommand": "python -m ipykernel install --user --name acme --display-name \"ACME Python\" && (test -f .utils/install_completions.sh && bash .utils/install_completions.sh </dev/null || true)",
@@ -22,6 +21,7 @@
 
         "files.autoSave": "afterDelay",
         "files.autoSaveDelay": 1000,
+        "files.eol": "\n",
 
         "files.exclude": {
           "**/.*": true,
